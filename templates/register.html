@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Register - Flask App{% endblock %}
+
+{% block content %}
+<div class="login-form">
+    <h2 class="text-center mb-4">Create Account</h2>
+
+    <form method="POST" action="{{ url_for('register') }}">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="mb-3">
+            <label for="confirm_password" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+        </div>
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-primary">Create Account</button>
+        </div>
+    </form>
+
+    <div class="mt-3 text-center">
+        <p>Already have an account? <a href="{{ url_for('login') }}">Log in</a></p>
+    </div>
+</div>
+{% endblock %}

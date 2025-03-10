@@ -1,0 +1,329 @@
+<!-- templates/admin/enhanced_stats.html -->
+{% extends 'admin/master.html' %}
+
+{% block head %}
+    {{ super() }}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>Advanced Application Statistics</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    User Statistics
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Total Users</h5>
+                    <p class="card-text display-4">{{ user_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Message Statistics
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Total Messages</h5>
+                    <p class="card-text display-4">{{ message_count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    Recent Activity
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Messages (Last 24h)</h5>
+                    <p class="card-text display-4">{{ last_day_messages }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    Top Active Users
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Username</th>
+                                <th>Messages</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in top_users %}
+                            <tr>
+                                <td>{{ user.username }}</td>
+                                <td>{{ user.message_count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    Message Activity by Hour
+                </div>
+                <div class="card-body">
+                    <canvas id="hourlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Hourly activity chart
+    var ctx = document.getElementById('hourlyChart').getContext('2d');
+    var hourlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ hour_labels|tojson }},
+            datasets: [{
+                label: 'Messages',
+                data: {{ hour_values|tojson }},
+                backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Message Count'
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Hour of Day'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+
+<!-- templates/admin/user_management.html -->
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container">
+    <h1>User Management</h1>
+    
+    <div class="card mb-4">
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Admin Status</th>
+                        <th>Created At</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+                        <td>
+                            <span class="badge {% if user.is_admin %}bg-success{% else %}bg-secondary{% endif %}">
+                                {% if user.is_admin %}Admin{% else %}User{% endif %}
+                            </span>
+                        </td>
+                        <td>{{ user.created_at or 'N/A' }}</td>
+                        <td>{{ user.last_login or 'Never' }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <form method="post" action="{{ url_for('usermanagement.toggle_admin', user_id=user.id) }}">
+                                    <button type="submit" class="btn btn-sm {% if user.is_admin %}btn-warning{% else %}btn-success{% endif %}">
+                                        {% if user.is_admin %}Revoke Admin{% else %}Make Admin{% endif %}
+                                    </button>
+                                </form>
+                                <a href="{{ url_for('usermanagement.reset_password', user_id=user.id) }}" class="btn btn-sm btn-primary ms-1">Reset Password</a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- templates/admin/reset_password.html -->
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container">
+    <h1>Reset Password for {{ user.username }}</h1>
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="post">
+                <div class="mb-3">
+                    <label for="new_password" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="new_password" name="new_password" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Reset Password</button>
+                <a href="{{ url_for('usermanagement.index') }}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<!-- templates/admin/system_monitoring.html -->
+{% extends 'admin/master.html' %}
+
+{% block head %}
+    {{ super() }}
+    <meta http-equiv="refresh" content="30">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <h1>System Monitoring</h1>
+    <p class="text-muted">Auto-refreshes every 30 seconds</p>
+    
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    CPU Usage
+                </div>
+                <div class="card-body">
+                    <canvas id="cpuChart"></canvas>
+                    <p class="text-center mt-2">Current: {{ cpu_percent }}%</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    Memory Usage
+                </div>
+                <div class="card-body">
+                    <canvas id="memoryChart"></canvas>
+                    <p class="text-center mt-2">
+                        {{ (memory.used / (1024**3))|round(2) }} GB / 
+                        {{ (memory.total / (1024**3))|round(2) }} GB
+                        ({{ memory.percent }}%)
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    Disk Usage
+                </div>
+                <div class="card-body">
+                    <canvas id="diskChart"></canvas>
+                    <p class="text-center mt-2">
+                        {{ (disk.used / (1024**3))|round(2) }} GB / 
+                        {{ (disk.total / (1024**3))|round(2) }} GB
+                        ({{ disk.percent }}%)
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    Database Size
+                </div>
+                <div class="card-body text-center">
+                    <h3>{{ db_size }}</h3>
+                    <p class="text-muted">Current database size in MB</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    System Information
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>CPU Usage</th>
+                            <td>{{ cpu_percent }}%</td>
+                        </tr>
+                        <tr>
+                            <th>Memory Usage</th>
+                            <td>{{ memory.percent }}%</td>
+                        </tr>
+                        <tr>
+                            <th>Disk Usage</th>
+                            <td>{{ disk.percent }}%</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Charts for system monitoring
+    function createGaugeChart(elementId, value, label, color) {
+        var ctx = document.getElementById(elementId).getContext('2d');
+        return new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [value, 100 - value],
+                    backgroundColor: [color, '#f2f2f2']
+                }]
+            },
+            options: {
+                cutout: '70%',
+                responsive: true,
+                maintainAspectRatio: true,
+                circumference: 180,
+                rotation: -90,
+                plugins: {
+                    tooltip: {
+                        enabled: false
+                    },
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+    }
+    
+    // Create charts
+    createGaugeChart('cpuChart', {{ cpu_percent }}, 'CPU', 'rgba(54, 162, 235, 0.8)');
+    createGaugeChart('memoryChart', {{ memory.percent }}, 'RAM', 'rgba(75, 192, 192, 0.8)');
+    createGaugeChart('diskChart', {{ disk.percent }}, 'Disk', 'rgba(153, 102, 255, 0.8)');
+</script>
+{% endblock %}

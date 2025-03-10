@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat - Flask App{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-10 offset-md-1">
+        <div class="card">
+            <div class="card-header">
+                <h2>Chat Room</h2>
+            </div>
+            <div class="card-body">
+                <div id="chat-messages" class="chat-container">
+                    {% for message in messages %}
+                    <div class="message mb-3">
+                        <div class="d-flex">
+                            <strong class="me-2">{{ message.user.username }}:</strong>
+                            <span>{{ message.content }}</span>
+                        </div>
+                        <small class="text-muted">{{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="input-group">
+                    <input type="text" id="message-input" class="form-control" placeholder="Type your message...">
+                    <button class="btn btn-primary" id="send-button">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        
+        // Scroll to bottom initially
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                // Send message via fetch API
+                fetch('/send-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // Clear input
+                        messageInput.value = '';
+                    }
+                });
+            }
+        }
+        
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Poll for new messages every 2 seconds
+        function pollMessages() {
+            fetch('/poll-messages')
+                .then(response => response.json())
+                .then(messages => {
+                    // Clear current messages
+                    chatMessages.innerHTML = '';
+                    
+                    // Add all messages
+                    messages.forEach(msg => {
+                        const messageElement = document.createElement('div');
+                        messageElement.classList.add('message', 'mb-3');
+                        
+                        const header = document.createElement('div');
+                        header.classList.add('d-flex');
+                        
+                        const username = document.createElement('strong');
+                        username.classList.add('me-2');
+                        username.textContent = msg.username + ':';
+                        
+                        const content = document.createElement('span');
+                        content.textContent = msg.content;
+                        
+                        const timestamp = document.createElement('small');
+                        timestamp.classList.add('text-muted');
+                        timestamp.textContent = new Date(msg.timestamp).toLocaleString();
+                        
+                        header.appendChild(username);
+                        header.appendChild(content);
+                        messageElement.appendChild(header);
+                        messageElement.appendChild(timestamp);
+                        
+                        chatMessages.appendChild(messageElement);
+                    });
+                    
+                    // Scroll to bottom after updating
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                });
+        }
+        
+        // Initial poll and then set interval
+        pollMessages();
+        setInterval(pollMessages, 2000);
+    });
+</script>
+{% endblock %}
