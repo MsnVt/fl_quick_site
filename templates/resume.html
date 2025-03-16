@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume</title>
+    <link rel="icon" href="{{ url_for('static', filename='dante_prospective_favicon.png') }}" type="image/x-icon">
     <style>
         body {
             margin: 0;
@@ -15,43 +16,43 @@
             min-height: 100vh;
             background-color: #f5f5f5;
         }
-        
+
         .resume-container {
             width: 100%;
-            max-width: 1000px;
+            max-width: 69%;
             margin: 20px auto;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             background-color: white;
             border-radius: 8px;
             overflow: hidden;
         }
-        
+
         .svg-container {
             width: 100%;
             height: auto;
             position: relative;
         }
-        
+
         .svg-container svg {
             width: 100%;
             height: auto;
             display: block;
         }
-        
+
         /* Navigation menu styles if needed later */
         .nav-menu {
             text-align: right;
             padding: 10px 20px;
             background-color: #f8f8f8;
         }
-        
+
         .nav-menu a {
             margin-left: 15px;
             text-decoration: none;
             color: #333;
             font-size: 14px;
         }
-        
+
         @media (max-width: 768px) {
             .resume-container {
                 margin: 10px;
@@ -62,7 +63,7 @@
 </head>
 <body>
     <div class="resume-container">
-        <!-- Uncomment this if you want a navigation menu 
+        <!-- Uncomment this if you want a navigation menu
         <div class="nav-menu">
             <a href="/index">Home</a>
             <a href="/login">Login</a>
